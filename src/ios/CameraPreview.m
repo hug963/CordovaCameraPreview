@@ -126,6 +126,45 @@
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
+- (void) setFlashMode:(CDVInvokedUrlCommand*)command {
+    NSLog(@"Flash Mode");
+    CDVPluginResult *pluginResult;
+    
+    NSInteger flashMode;
+    NSString *errMsg;
+    
+    if (command.arguments.count <= 0)
+    {
+        errMsg = @"Please specify a flash mode";
+    }
+    else
+    {
+        NSString *strFlashMode = [command.arguments objectAtIndex:0];
+        flashMode = [strFlashMode integerValue];
+        if (flashMode != AVCaptureFlashModeOff
+            && flashMode != AVCaptureFlashModeOn
+            && flashMode != AVCaptureFlashModeAuto)
+        {
+            errMsg = @"Invalid parameter";
+        }
+
+    }
+    
+    if (errMsg) {
+        NSLog(@"%@", errMsg);
+        
+    } else {
+        if (self.sessionManager != nil) {
+            [self.sessionManager setFlashMode:flashMode];
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        } else {
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Camera not started"];
+        }
+    }
+    
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
 - (void) takePicture:(CDVInvokedUrlCommand*)command {
         NSLog(@"takePicture");
         CDVPluginResult *pluginResult;

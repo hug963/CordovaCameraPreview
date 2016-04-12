@@ -162,7 +162,50 @@
 
                 [self updateOrientation:[self getCurrentOrientation]];
                 [self.session commitConfiguration];
+                self.device = videoDevice;
         });
+}
+
+- (void)setFlashMode:(NSInteger)flashMode
+{
+    
+    NSString *errMsg;
+
+        // check session is started
+        if (self.session)
+        {
+            if ([self.device hasFlash])
+            {
+                [self.device lockForConfiguration:nil];
+                if (flashMode == AVCaptureFlashModeOn)
+                {
+                    self.defaultFlashMode = AVCaptureFlashModeOn;
+                }
+                else if (flashMode == AVCaptureFlashModeOff)
+                {
+                    self.defaultFlashMode = AVCaptureFlashModeOff;
+                }
+                else if (flashMode == AVCaptureFlashModeAuto)
+                {
+                    self.defaultFlashMode = AVCaptureFlashModeAuto;
+                }
+                [self.device setFlashMode:self.defaultFlashMode];
+                [self.device unlockForConfiguration];
+                NSLog(@"%zd hey", self.defaultFlashMode);
+            }
+            else
+            {
+                errMsg = @"This device has no flash or torch";
+            }
+        }
+        else
+        {
+            errMsg = @"Session is not started";
+        }
+    
+    if (errMsg) {
+        NSLog(@"%@", errMsg);
+    }
 }
 
 - (void)checkDeviceAuthorizationStatus

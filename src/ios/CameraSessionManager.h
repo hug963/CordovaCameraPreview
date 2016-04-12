@@ -6,6 +6,7 @@
 - (CameraSessionManager *)init;
 - (void) setupSession:(NSString *)defaultCamera;
 - (void) switchCamera;
+- (void) setFlashMode:(NSInteger)flashMode;
 - (void) updateOrientation:(AVCaptureVideoOrientation)orientation;
 - (AVCaptureVideoOrientation) getCurrentOrientation:(UIInterfaceOrientation)toInterfaceOrientation;
 
