@@ -140,6 +140,15 @@
             
                 videoDevice = [self cameraWithPosition:self.defaultCamera];
 
+                if ([videoDevice hasFlash] && [videoDevice isFlashModeSupported:self.defaultFlashMode]) {
+                        if ([videoDevice lockForConfiguration:&error]) {
+                                [videoDevice setFlashMode:self.defaultFlashMode];
+                                [videoDevice unlockForConfiguration];
+                        } else {
+                                NSLog(@"%@", error);
+                        }
+                }
+
                 AVCaptureDeviceInput *videoDeviceInput = [AVCaptureDeviceInput deviceInputWithDevice:videoDevice error:&error];
 
                 if (error) {
