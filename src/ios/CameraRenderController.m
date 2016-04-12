@@ -166,26 +166,13 @@
                 [cropFilter setValue:cropRect forKey:@"inputRectangle"];
                 CIImage *croppedImage = [cropFilter outputImage];
 
-                CIFilter *filter = [self.sessionManager ciFilter];
-
-                CIImage *result;
-                if (filter != nil) {
-                        [self.sessionManager.filterLock lock];
-                        [filter setValue:croppedImage forKey:kCIInputImageKey];
-                        result = [filter outputImage];
-                        [self.sessionManager.filterLock unlock];
-                }
-                else {
-                        result = croppedImage;
-                }
-
                 //fix front mirroring
                 if (self.sessionManager.defaultCamera == AVCaptureDevicePositionFront) {
-                        CGAffineTransform matrix = CGAffineTransformTranslate(CGAffineTransformMakeScale(-1, 1), 0, result.extent.size.height);
-                        result = [result imageByApplyingTransform:matrix];
+                        CGAffineTransform matrix = CGAffineTransformTranslate(CGAffineTransformMakeScale(-1, 1), 0, croppedImage.extent.size.height);
+                        croppedImage = [croppedImage imageByApplyingTransform:matrix];
                 }
 
-                self.latestFrame = result;
+                self.latestFrame = croppedImage;
 
                 CGFloat pointScale;
                 if ([[UIScreen mainScreen] respondsToSelector:@selector(nativeScale)]) {
@@ -195,7 +182,7 @@
                 }
                 CGRect dest = CGRectMake(0, 0, self.view.frame.size.width*pointScale, self.view.frame.size.height*pointScale);
 
-                [self.ciContext drawImage:result inRect:dest fromRect:[result extent]];
+                [self.ciContext drawImage:croppedImage inRect:dest fromRect:[croppedImage extent]];
                 [self.context presentRenderbuffer:GL_RENDERBUFFER];
                 [(GLKView *)(self.view)display];
                 [self.renderLock unlock];

@@ -145,48 +145,10 @@
         self.onPictureTakenHandlerId = command.callbackId;
 }
 
--(void) setColorEffect:(CDVInvokedUrlCommand*)command {
-        NSLog(@"setColorEffect");
-        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-        NSString *filterName = command.arguments[0];
-
-        if ([filterName isEqual: @"none"]) {
-                dispatch_async(self.sessionManager.sessionQueue, ^{
-                        [self.sessionManager setCiFilter:nil];
-                });
-        } else if ([filterName isEqual: @"mono"]) {
-                dispatch_async(self.sessionManager.sessionQueue, ^{
-                        CIFilter *filter = [CIFilter filterWithName:@"CIColorMonochrome"];
-                        [filter setDefaults];
-                        [self.sessionManager setCiFilter:filter];
-                });
-        } else if ([filterName isEqual: @"negative"]) {
-                dispatch_async(self.sessionManager.sessionQueue, ^{
-                        CIFilter *filter = [CIFilter filterWithName:@"CIColorInvert"];
-                        [filter setDefaults];
-                        [self.sessionManager setCiFilter:filter];
-                });
-        } else if ([filterName isEqual: @"posterize"]) {
-                dispatch_async(self.sessionManager.sessionQueue, ^{
-                        CIFilter *filter = [CIFilter filterWithName:@"CIColorPosterize"];
-                        [filter setDefaults];
-                        [self.sessionManager setCiFilter:filter];
-                });
-        } else if ([filterName isEqual: @"sepia"]) {
-                dispatch_async(self.sessionManager.sessionQueue, ^{
-                        CIFilter *filter = [CIFilter filterWithName:@"CISepiaTone"];
-                        [filter setDefaults];
-                        [self.sessionManager setCiFilter:filter];
-                });
-        } else {
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Filter not found"];
-        }
-
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
 - (void) invokeTakePicture {
         [self invokeTakePicture:0.0 withHeight:0.0];
 }
+
 - (void) invokeTakePicture:(CGFloat) maxWidth withHeight:(CGFloat) maxHeight {
         AVCaptureConnection *connection = [self.sessionManager.stillImageOutput connectionWithMediaType:AVMediaTypeVideo];
         [self.sessionManager.stillImageOutput captureStillImageAsynchronouslyFromConnection:connection completionHandler:^(CMSampleBufferRef sampleBuffer, NSError *error) {

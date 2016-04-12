@@ -98,6 +98,7 @@
                 [self updateOrientation:[self getCurrentOrientation]];
         });
 }
+
 - (void) updateOrientation:(AVCaptureVideoOrientation)orientation
 {
         AVCaptureConnection *captureConnection;
@@ -113,6 +114,7 @@
                         [captureConnection setVideoOrientation:orientation];
                 }
         }
+}
 }
 - (void) switchCamera
 {
