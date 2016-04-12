@@ -40,12 +40,22 @@ CameraPreview.hide = function() {
   exec(null, null, PLUGIN_NAME, "hideCamera", []);
 };
 
+CameraPreview.setFlashMode = function(flashMode) {
+exec(null, null, PLUGIN_NAME, "setFlashMode", [flashMode]);
+};
+
 CameraPreview.show = function() {
   exec(null, null, PLUGIN_NAME, "showCamera", []);
 };
 
 CameraPreview.disable = function(disable) {
   exec(null, null, PLUGIN_NAME, "disable", [disable]);
+};
+
+CameraPreview.FlashMode = {
+    OFF : 0,
+    ON : 1,
+    AUTO : 2
 };
 
 module.exports = CameraPreview;
