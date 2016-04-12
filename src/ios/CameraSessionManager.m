@@ -54,19 +54,21 @@
                 } else {
                         self.defaultCamera = AVCaptureDevicePositionBack;
                 }
+            
+                self.defaultFlashMode = AVCaptureFlashModeAuto;
+            
+                self.device = [self cameraWithPosition:self.defaultCamera];
 
-                AVCaptureDevice *videoDevice = [CameraSessionManager deviceWithMediaType:AVMediaTypeVideo preferringPosition:self.defaultCamera];
-
-                if ([videoDevice hasFlash] && [videoDevice isFlashModeSupported:AVCaptureFlashModeAuto]) {
-                        if ([videoDevice lockForConfiguration:&error]) {
-                                [videoDevice setFlashMode:AVCaptureFlashModeAuto];
-                                [videoDevice unlockForConfiguration];
+                if ([self.device hasFlash] && [self.device isFlashModeSupported:self.defaultFlashMode]) {
+                        if ([self.device lockForConfiguration:&error]) {
+                                [self.device setFlashMode:self.defaultFlashMode];
+                                [self.device unlockForConfiguration];
                         } else {
                                 NSLog(@"%@", error);
                         }
                 }
 
-                AVCaptureDeviceInput *videoDeviceInput = [AVCaptureDeviceInput deviceInputWithDevice:videoDevice error:&error];
+                AVCaptureDeviceInput *videoDeviceInput = [AVCaptureDeviceInput deviceInputWithDevice:self.device error:&error];
 
                 if (error) {
                         NSLog(@"%@", error);
@@ -133,17 +135,10 @@
                         [self.session removeInput:[self videoDeviceInput]];
                         [self setVideoDeviceInput:nil];
                 }
-
-                AVCaptureDevice *videoDevice = [CameraSessionManager deviceWithMediaType:AVMediaTypeVideo preferringPosition:self.defaultCamera];
-
-                if ([videoDevice hasFlash] && [videoDevice isFlashModeSupported:AVCaptureFlashModeAuto]) {
-                        if ([videoDevice lockForConfiguration:&error]) {
-                                [videoDevice setFlashMode:AVCaptureFlashModeAuto];
-                                [videoDevice unlockForConfiguration];
-                        } else {
-                                NSLog(@"%@", error);
-                        }
-                }
+            
+                AVCaptureDevice *videoDevice = nil;
+            
+                videoDevice = [self cameraWithPosition:self.defaultCamera];
 
                 AVCaptureDeviceInput *videoDeviceInput = [AVCaptureDeviceInput deviceInputWithDevice:videoDevice error:&error];
 
@@ -179,19 +174,16 @@
          }];
 }
 
-+ (AVCaptureDevice *) deviceWithMediaType:(NSString *)mediaType preferringPosition:(AVCaptureDevicePosition)position
+// Find a camera with the specified AVCaptureDevicePosition, returning nil if one is not found
+- (AVCaptureDevice *) cameraWithPosition:(AVCaptureDevicePosition) position
 {
-        NSArray *devices = [AVCaptureDevice devicesWithMediaType:mediaType];
-        AVCaptureDevice *captureDevice = [devices firstObject];
-
-        for (AVCaptureDevice *device in devices) {
-                if ([device position] == position) {
-                        captureDevice = device;
-                        break;
-                }
-        }
-
-        return captureDevice;
+    NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+    for (AVCaptureDevice *device in devices)
+    {
+        if ([device position] == position)
+            return device;
+    }
+    return nil;
 }
 
 @end
