@@ -205,8 +205,7 @@
                         CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:originalPicture];
                         [pluginResult setKeepCallbackAsBool:true];
                         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.onPictureTakenHandlerId];
-                        });
-                 }
+                }
          }];
 }
 @end

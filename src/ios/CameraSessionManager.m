@@ -12,7 +12,6 @@
                     [self.session setSessionPreset:AVCaptureSessionPresetPhoto];
                 }
                 self.filterLock = [[NSLock alloc] init];
-                [self setCiFilter:nil];
         }
         return self;
 }
@@ -117,7 +116,7 @@
                 }
         }
 }
-}
+
 - (void) switchCamera
 {
         if (self.defaultCamera == AVCaptureDevicePositionFront) {
