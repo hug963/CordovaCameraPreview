@@ -8,6 +8,9 @@
                 // Create the AVCaptureSession
                 self.session = [[AVCaptureSession alloc] init];
                 self.sessionQueue = dispatch_queue_create("session queue", DISPATCH_QUEUE_SERIAL);
+                if ([self.session canSetSessionPreset:AVCaptureSessionPresetPhoto]) {
+                    [self.session setSessionPreset:AVCaptureSessionPresetPhoto];
+                }
                 self.filterLock = [[NSLock alloc] init];
                 [self setCiFilter:nil];
         }
