@@ -196,11 +196,6 @@
                  if (error) {
                          NSLog(@"%@", error);
                  } else {
-                         [self.cameraRenderController.renderLock lock];
-                         CIImage *previewCImage = self.cameraRenderController.latestFrame;
-                         CGImageRef previewImage = [self.cameraRenderController.ciContext createCGImage:previewCImage fromRect:previewCImage.extent];
-                         [self.cameraRenderController.renderLock unlock];
-
                          NSData *imageData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:sampleBuffer];
                          UIImage *capturedImage  = [[UIImage alloc] initWithData:imageData];
 
@@ -250,7 +245,6 @@
                          dispatch_group_t group = dispatch_group_create();
 
                          __block NSString *originalPicturePath;
-                         __block NSString *previewPicturePath;
                          __block NSError *photosAlbumError;
 
                          ALAssetOrientation orientation;
@@ -269,20 +263,6 @@
                                  orientation = ALAssetOrientationRight;
                          }
 
-                         // task 1
-                         dispatch_group_enter(group);
-                         [library writeImageToSavedPhotosAlbum:previewImage orientation:ALAssetOrientationUp completionBlock:^(NSURL *assetURL, NSError *error) {
-                                  if (error) {
-                                          NSLog(@"FAILED to save Preview picture.");
-                                          photosAlbumError = error;
-                                  } else {
-                                          previewPicturePath = [assetURL absoluteString];
-                                          NSLog(@"previewPicturePath: %@", previewPicturePath);
-                                  }
-                                  dispatch_group_leave(group);
-                          }];
-
-                         //task 2
                          dispatch_group_enter(group);
                          [library writeImageToSavedPhotosAlbum:finalImage orientation:orientation completionBlock:^(NSURL *assetURL, NSError *error) {
                                   if (error) {
@@ -307,7 +287,6 @@
                                 } else {
                                         // Success returns two elements in the returned array
                                         [params addObject:originalPicturePath];
-                                        [params addObject:previewPicturePath];
                                 }
 
                                 CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:params];
