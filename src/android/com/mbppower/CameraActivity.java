@@ -12,9 +12,11 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.hardware.Camera.PictureCallback;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.DisplayMetrics;
+import android.util.Base64;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -42,7 +44,7 @@ import java.util.List;
 public class CameraActivity extends Fragment {
 
 	public interface CameraPreviewListener {
-		public void onPictureTaken(String originalPicturePath, String previewPicturePath);
+        public void onPictureTaken(String originalPicturePath);
 	}
 
 	private CameraPreviewListener eventListener;
@@ -318,114 +320,50 @@ public class CameraActivity extends Fragment {
     }
 	
 	public void takePicture(final double maxWidth, final double maxHeight){
-		final ImageView pictureView = (ImageView) view.findViewById(getResources().getIdentifier("picture_view", "id", appResourcesPackage));
-		if(mPreview != null) {
-			
-			if(!canTakePicture)
-				return;
-			
-			canTakePicture = false;
+        if(mPreview != null) {
+            
+            if(!canTakePicture)
+                return;
+            
+            canTakePicture = false;
 
-			mPreview.setOneShotPreviewCallback(new Camera.PreviewCallback() {
+            mCamera.takePicture(null, null, mPicture);
 
-				@Override
-				public void onPreviewFrame(final byte[] data, final Camera camera) {
-
-					new Thread() {
-						public void run() {
-
-							//raw picture
-							byte[] bytes = mPreview.getFramePicture(data, camera);
-							final Bitmap pic = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-
-							//scale down
-							float scale = (float)pictureView.getWidth()/(float)pic.getWidth();
-							Bitmap scaledBitmap = Bitmap.createScaledBitmap(pic, (int)(pic.getWidth()*scale), (int)(pic.getHeight()*scale), false);
-
-							final Matrix matrix = new Matrix();
-							if (cameraCurrentlyLocked == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-								Log.d(TAG, "mirror y axis");
-								matrix.preScale(-1.0f, 1.0f);
-							}
-							Log.d(TAG, "preRotate " + mPreview.getDisplayOrientation() + "deg");
-							matrix.postRotate(mPreview.getDisplayOrientation());
-
-							final Bitmap fixedPic = Bitmap.createBitmap(scaledBitmap, 0, 0, scaledBitmap.getWidth(), scaledBitmap.getHeight(), matrix, false);
-							final Rect rect = new Rect(mPreview.mSurfaceView.getLeft(), mPreview.mSurfaceView.getTop(), mPreview.mSurfaceView.getRight(), mPreview.mSurfaceView.getBottom());
-
-							getActivity().runOnUiThread(new Runnable() {
-								@Override
-								public void run() {
-									pictureView.setImageBitmap(fixedPic);
-									pictureView.layout(rect.left, rect.top, rect.right, rect.bottom);
-
-									Bitmap finalPic = null;
-									//scale final picture
-									if(maxWidth > 0 && maxHeight > 0){
-										final double scaleHeight = maxWidth/(double)pic.getHeight();
-										final double scaleWidth = maxHeight/(double)pic.getWidth();
-										final double scale  = scaleHeight < scaleWidth ? scaleWidth : scaleHeight;
-										finalPic = Bitmap.createScaledBitmap(pic, (int)(pic.getWidth()*scale), (int)(pic.getHeight()*scale), false);
-									}
-									else{
-										finalPic = pic;
-									}
-
-									Bitmap originalPicture = Bitmap.createBitmap(finalPic, 0, 0, (int)(finalPic.getWidth()), (int)(finalPic.getHeight()), matrix, false);
-
-								    //get bitmap and compress
-								    Bitmap picture = loadBitmapFromView(view.findViewById(getResources().getIdentifier("frame_camera_cont", "id", appResourcesPackage)));
-								    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-								    picture.compress(Bitmap.CompressFormat.PNG, 80, stream);
-
-									generatePictureFromView(originalPicture, picture);
-									canTakePicture = true;
-								}
-							});
-						}
-					}.start();
-				}
-			});
-		}
-		else{
-			canTakePicture = true;
-		}
-	}
-    private void generatePictureFromView(final Bitmap originalPicture, final Bitmap picture){
-
-	    final FrameLayout cameraLoader = (FrameLayout)view.findViewById(getResources().getIdentifier("camera_loader", "id", appResourcesPackage));
-	    cameraLoader.setVisibility(View.VISIBLE);
-	    final ImageView pictureView = (ImageView) view.findViewById(getResources().getIdentifier("picture_view", "id", appResourcesPackage));
-	    new Thread() {
-		    public void run() {
-
-			    try {
-				    final File picFile = storeImage(picture, "_preview");
-				    final File originalPictureFile = storeImage(originalPicture, "_original");
-
-					eventListener.onPictureTaken(originalPictureFile.getAbsolutePath(), picFile.getAbsolutePath());
-
-				    getActivity().runOnUiThread(new Runnable() {
-					    @Override
-					    public void run() {
-				            cameraLoader.setVisibility(View.INVISIBLE);
-						    pictureView.setImageBitmap(null);
-					    }
-				    });
-			    }
-			    catch(Exception e){
-				    //An unexpected error occurred while saving the picture.
-				    getActivity().runOnUiThread(new Runnable() {
-					    @Override
-					    public void run() {
-				            cameraLoader.setVisibility(View.INVISIBLE);
-						    pictureView.setImageBitmap(null);
-					    }
-				    });
-			    }
-		    }
-	    }.start();
+        }
+        else{
+            canTakePicture = true;
+        }
     }
+
+    PictureCallback mPicture = new PictureCallback() {
+        @Override
+        public void onPictureTaken(byte[] data, Camera camera) {
+            Bitmap picture = BitmapFactory.decodeByteArray(data, 0, data.length);
+
+            Matrix matrix = new Matrix();
+            matrix.setRotate(270, (float) picture.getWidth() / 2, (float) picture.getHeight() / 2);
+
+            try
+            {
+                picture = Bitmap.createBitmap(picture, 0, 0, picture.getWidth(), picture.getHeight(), matrix, true);
+            }
+            catch (OutOfMemoryError oom)
+            {
+                // You can run out of memory if the image is very large:
+                // http://simonmacdonald.blogspot.ca/2012/07/change-to-camera-code-in-phonegap-190.html
+                // If this happens, simply do not rotate the image and return it unmodified.
+                // If you do not catch the OutOfMemoryError, the Android app crashes.
+            }
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            picture.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream);
+            byte[] byteArray = byteArrayOutputStream.toByteArray();
+
+            String encodedImage = Base64.encodeToString(byteArray, Base64.DEFAULT);
+
+            eventListener.onPictureTaken(encodedImage);
+            canTakePicture = true;
+        }
+    };
 
     private File getOutputMediaFile(String suffix){
 
