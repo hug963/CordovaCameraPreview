@@ -13,6 +13,7 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
+import android.hardware.Camera.Parameters;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.DisplayMetrics;
@@ -46,6 +47,12 @@ public class CameraActivity extends Fragment {
     public interface CameraPreviewListener {
         public void onPictureTaken(String originalPicturePath);
     }
+
+    private static final int FLASH_OFF = 0;
+    private static final int FLASH_ON = 1;
+    private static final int FLASH_AUTO = 2;
+
+    public int currentFlashMode = 2;
 
     private CameraPreviewListener eventListener;
     private static final String TAG = "CameraActivity";
@@ -298,6 +305,30 @@ public class CameraActivity extends Fragment {
         mCamera.startPreview();
     }
 
+        public void setFlashMode(int flashMode) {
+
+        Camera.Parameters parameters = mCamera.getParameters();
+        List<String> supportedFlashModes = parameters.getSupportedFlashModes();
+
+        if (supportedFlashModes != null) {
+            if (flashMode == FLASH_OFF && supportedFlashModes.contains(Parameters.FLASH_MODE_OFF)) {
+                parameters.setFlashMode(Parameters.FLASH_MODE_OFF);
+            } else if (flashMode == FLASH_ON && supportedFlashModes.contains(Parameters.FLASH_MODE_ON)) {
+                parameters.setFlashMode(Parameters.FLASH_MODE_ON);
+            } else if (flashMode == FLASH_AUTO && supportedFlashModes.contains(Parameters.FLASH_MODE_AUTO)) {
+                parameters.setFlashMode(Parameters.FLASH_MODE_AUTO);
+            } else if (flashMode == FLASH_AUTO && supportedFlashModes.contains(Parameters.FLASH_MODE_ON)) {
+                parameters.setFlashMode(Parameters.FLASH_MODE_ON);
+            }
+            mCamera.setParameters(parameters);
+        }
+
+        Log.d(TAG, "flashmode: " + flashMode);
+
+        currentFlashMode = flashMode;
+    }
+
+
     public void setCameraParameters(Camera.Parameters params) {
       cameraParameters = params;
 
@@ -341,7 +372,7 @@ public class CameraActivity extends Fragment {
             Bitmap picture = BitmapFactory.decodeByteArray(data, 0, data.length);
 
             Matrix matrix = new Matrix();
-            matrix.setRotate(270, (float) picture.getWidth() / 2, (float) picture.getHeight() / 2);
+            matrix.setRotate(90, (float) picture.getWidth() / 2, (float) picture.getHeight() / 2);
 
             try
             {
@@ -553,6 +584,7 @@ class Preview extends RelativeLayout implements SurfaceHolder.Callback {
 
     public void switchCamera(Camera camera, int cameraId) {
         setCamera(camera, cameraId);
+
         try {
             camera.setPreviewDisplay(mHolder);
             Camera.Parameters parameters = camera.getParameters();
