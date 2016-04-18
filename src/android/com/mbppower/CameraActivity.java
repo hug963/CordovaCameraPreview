@@ -386,7 +386,7 @@ public class CameraActivity extends Fragment {
                 // If you do not catch the OutOfMemoryError, the Android app crashes.
             }
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            picture.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream);
+            picture.compress(Bitmap.CompressFormat.JPEG, 95, byteArrayOutputStream);
             byte[] byteArray = byteArrayOutputStream.toByteArray();
 
             String encodedImage = Base64.encodeToString(byteArray, Base64.DEFAULT);
