@@ -511,6 +511,8 @@ class Preview extends RelativeLayout implements SurfaceHolder.Callback {
     Camera mCamera;
     int cameraId;
     int displayOrientation;
+    int viewWidth;
+    int viewHeight;
 
     Preview(Context context) {
         super(context);
@@ -584,7 +586,10 @@ class Preview extends RelativeLayout implements SurfaceHolder.Callback {
 
     public void switchCamera(Camera camera, int cameraId) {
         setCamera(camera, cameraId);
-
+        mSupportedPreviewSizes = camera.getParameters().getSupportedPreviewSizes();
+        if (mSupportedPreviewSizes != null) {
+            mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, viewWidth, viewHeight);
+        }
         try {
             camera.setPreviewDisplay(mHolder);
             Camera.Parameters parameters = camera.getParameters();
@@ -602,12 +607,13 @@ class Preview extends RelativeLayout implements SurfaceHolder.Callback {
         // We purposely disregard child measurements because act as a
         // wrapper to a SurfaceView that centers the camera preview instead
         // of stretching it.
-        final int width = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec);
-        final int height = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
-        setMeasuredDimension(width, height);
+        viewWidth = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec);
+        viewHeight = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
+        setMeasuredDimension(viewWidth, viewHeight);
 
         if (mSupportedPreviewSizes != null) {
-            mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, width, height);
+            mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, viewWidth, viewHeight);
+            Log.i(TAG, "called supported sizes");
         }
     }
 
