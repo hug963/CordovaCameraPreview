@@ -254,6 +254,12 @@
     CGContextScaleCTM(context, 1.0, -1.0);
     float width = perpendicular ? imageHeight : imageWidth;
     float height = perpendicular ? imageWidth : imageHeight;
+
+    // flip image if front camera
+    if (self.sessionManager.defaultCamera == AVCaptureDevicePositionFront) {
+        CGContextScaleCTM(context, 1.0f, -1.0f);
+    }
+
     CGContextDrawImage(context, CGRectMake(-width / 2, -height / 2, width, height), [sourceImage CGImage]);
     
     // Move the origin back since the rotation might've change it (if its 90 degrees)
