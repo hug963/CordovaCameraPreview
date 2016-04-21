@@ -372,7 +372,13 @@ public class CameraActivity extends Fragment {
             Bitmap picture = BitmapFactory.decodeByteArray(data, 0, data.length);
 
             Matrix matrix = new Matrix();
-            matrix.setRotate(90, (float) picture.getWidth() / 2, (float) picture.getHeight() / 2);
+
+            if (cameraCurrentlyLocked == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                Log.d(TAG, "mirror y axis");
+                matrix.preScale(-1.0f, 1.0f);
+            }
+
+            matrix.postRotate(mPreview.getDisplayOrientation());
 
             try
             {
